@@ -53,30 +53,29 @@ while True:
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     rects = detector.detectMultiScale(gray, scaleFactor=1.3,
         minNeighbors=10, minSize=(75, 75))
-    if len(rects):
-        # loop over the cat faces and draw a rectangle surrounding each
-        for (i, (x, y, w, h)) in enumerate(rects):
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 4)
-            frame_cropped = frame[y:y+h, x:x+w]
-            frame_resized = cv2.resize(frame_cropped, dim, interpolation = cv2.INTER_AREA)
-            #cv2.imshow("crop", frame_resized)
+    # loop over the cat faces and draw a rectangle surrounding each
+    for (i, (x, y, w, h)) in enumerate(rects):
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 4)
+        frame_cropped = frame[y:y+h, x:x+w]
+        frame_resized = cv2.resize(frame_cropped, dim, interpolation = cv2.INTER_AREA)
+        #cv2.imshow("crop", frame_resized)
 
-            # add N dim
-            input_data = np.expand_dims(frame_resized, axis=0)
+        # add N dim
+        input_data = np.expand_dims(frame_resized, axis=0)
 
-            if floating_model:
-                input_data = (np.float32(input_data) - 0) / 255
+        if floating_model:
+            input_data = (np.float32(input_data) - 0) / 255
 
-            interpreter.set_tensor(input_details[0]['index'], input_data)
+        interpreter.set_tensor(input_details[0]['index'], input_data)
 
-            interpreter.invoke()
-            output_data = interpreter.get_tensor(output_details[0]['index'])
-            results = np.squeeze(output_data)
+        interpreter.invoke()
+        output_data = interpreter.get_tensor(output_details[0]['index'])
+        results = np.squeeze(output_data)
 
-            top_k = results.argsort()[-5:][::-1]
+        top_k = results.argsort()[-5:][::-1]
 
-            cv2.putText(frame, "Cat #{}".format(labels[top_k[0]]), (x, y - 10),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        cv2.putText(frame, "Cat #{}".format(labels[top_k[0]]), (x, y - 10),
+            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
     # show the output frame
     cv2.namedWindow('Frame', cv2.WINDOW_NORMAL)
     cv2.setWindowProperty('Frame', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
